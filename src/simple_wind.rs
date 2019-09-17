@@ -129,7 +129,9 @@ pub mod tests {
         let mut imgbuf =
             image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Rgb([0, 0, 0]));
 
-        let mut rng = XorShiftRng::from_seed([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]);
+        let mut rng = XorShiftRng::from_seed([
+            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
+        ]);
 
         let (mut region_graph, border_graph) =
             gen_dual_graph::<TestInner, (), XorShiftRng>(dims, 8000, 2, &mut rng);

@@ -246,7 +246,7 @@ where
     let mut points: Vec<voronoi::Point> = points;
     let mut i = 0;
     loop {
-        vor_diagram = voronoi(points.clone(), dims.x.into());
+        vor_diagram = voronoi(&points, dims.x.into());
         if i == num_lloyd_iterations {
             break;
         }
@@ -482,11 +482,12 @@ pub(crate) mod tests {
             image::Rgb([222, 222, 222]),
         );
 
-        let mut rng =
-            rand_xorshift::XorShiftRng::from_seed([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]);
+        let mut rng = rand_xorshift::XorShiftRng::from_seed([
+            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
+        ]);
 
         let (region_graph, border_graph) =
-            gen_dual_graph::<(), (), rand_xorshift::XorShiftRng>(dims, 6500, 2, &mut rng);
+            gen_dual_graph::<(), (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
         draw_graph(
             &mut imgbuf,
             &region_graph,

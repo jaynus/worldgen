@@ -217,11 +217,12 @@ mod tests {
             image::Rgb([222, 222, 222]),
         );
 
-        let mut rng =
-            rand_xorshift::XorShiftRng::from_seed([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]);
+        let mut rng = rand_xorshift::XorShiftRng::from_seed([
+            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
+        ]);
 
         let (mut region_graph, border_graph) =
-            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 500, 2, &mut rng);
+            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
 
         // Start at the center
         let center = Point2::from(dims / 2.0);
@@ -347,20 +348,20 @@ mod rbf_interp_tests {
             image::Rgb([222, 222, 222]),
         );
 
-        let mut rng =
-            rand_xorshift::XorShiftRng::from_seed([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]);
+        let mut rng = rand_xorshift::XorShiftRng::from_seed([
+            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
+        ]);
 
         let (mut region_graph, border_graph) =
-            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 500, 2, &mut rng);
+            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
 
         // Start at the center
         let center = Point2::from(dims / 2.0);
         let soft_points = (0..10)
             .map(|_| {
-                let height = rng.gen_range(0.5, 0.8);
-                let x = rng.gen_range(dims.x / 3.0, dims.x - (dims.x / 3.0));
-                let y = rng.gen_range(dims.y / 3.0, dims.y - (dims.y / 3.0));
-
+                let height = rng.gen_range(0.3, 0.8);
+                let x = rng.gen_range(-500.0, 500.0);
+                let y = rng.gen_range(-500.0, 500.0);
                 PeakNode {
                     node: node_for_coordinate(
                         &region_graph,
@@ -652,19 +653,21 @@ mod spade_tests {
             image::Rgb([222, 222, 222]),
         );
 
-        let mut rng =
-            rand_xorshift::XorShiftRng::from_seed([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]);
+        let mut rng = rand_xorshift::XorShiftRng::from_seed([
+            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
+        ]);
 
         let (mut region_graph, border_graph) =
-            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 500, 2, &mut rng);
+            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
 
+        // Start at the center
         // Start at the center
         let center = Point2::from(dims / 2.0);
         let soft_points = (0..10)
             .map(|_| {
-                let height = rng.gen_range(0.5, 0.8);
-                let x = rng.gen_range(dims.x / 3.0, dims.x - (dims.x / 3.0));
-                let y = rng.gen_range(dims.y / 3.0, dims.y - (dims.y / 3.0));
+                let height = rng.gen_range(0.3, 0.8);
+                let x = rng.gen_range(-500.0, 500.0);
+                let y = rng.gen_range(-500.0, 500.0);
                 PeakNode {
                     node: node_for_coordinate(
                         &region_graph,
