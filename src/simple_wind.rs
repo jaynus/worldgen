@@ -100,7 +100,7 @@ pub mod tests {
         use crate::peak_automata::{node_for_coordinate, PeakNode, Settings};
 
         let center = Point2::from(dims / 2.0);
-        let soft_points = (0..10)
+        let soft_points = (0..20)
             .map(|_| {
                 let height = rng.gen_range(0.3, 0.8);
                 let x = rng.gen_range(-500.0, 500.0);

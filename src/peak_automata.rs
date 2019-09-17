@@ -226,7 +226,7 @@ mod tests {
 
         // Start at the center
         let center = Point2::from(dims / 2.0);
-        let soft_points = (0..10)
+        let soft_points = (0..20)
             .map(|_| {
                 let height = rng.gen_range(0.3, 0.8);
                 let x = rng.gen_range(-500.0, 500.0);
@@ -357,7 +357,7 @@ mod rbf_interp_tests {
 
         // Start at the center
         let center = Point2::from(dims / 2.0);
-        let soft_points = (0..10)
+        let soft_points = (0..20)
             .map(|_| {
                 let height = rng.gen_range(0.3, 0.8);
                 let x = rng.gen_range(-500.0, 500.0);
@@ -663,7 +663,7 @@ mod spade_tests {
         // Start at the center
         // Start at the center
         let center = Point2::from(dims / 2.0);
-        let soft_points = (0..10)
+        let soft_points = (0..20)
             .map(|_| {
                 let height = rng.gen_range(0.3, 0.8);
                 let x = rng.gen_range(-500.0, 500.0);
@@ -703,10 +703,9 @@ mod spade_tests {
                 region
                     .borders
                     .iter()
-                    .filter_map(|idx| {
+                    .map(|idx| {
                         let node = border_graph.node_weight(*idx).expect("Bad graphs");
-
-                        Some(Point2::<i32>::new(node.pos.x as i32, node.pos.y as i32))
+                        Point2::<i32>::new(node.pos.x as i32, node.pos.y as i32)
                     })
                     .collect()
             },
