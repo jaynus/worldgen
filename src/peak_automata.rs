@@ -342,11 +342,8 @@ mod rbf_interp_tests {
     #[test]
     pub fn rbf_interp() {
         let dims = Vector2::new(1024.0, 1024.0);
-        let mut imgbuf = image::ImageBuffer::from_pixel(
-            dims.x as u32,
-            dims.y as u32,
-            image::Rgb([222, 222, 222]),
-        );
+        let mut imgbuf =
+            image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Luma([0]));
 
         let mut rng = rand_xorshift::XorShiftRng::from_seed([
             122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
@@ -410,7 +407,7 @@ mod rbf_interp_tests {
                     .interp_point((point.x as f32, point.y as f32));
                 let color = (255.0 * height.min(1.0).max(0.0)) as u8;
 
-                image::Rgb([color, color, color])
+                image::Luma([color])
             },
         );
 
@@ -647,11 +644,8 @@ mod spade_tests {
     #[test]
     fn dt_spade_interp() {
         let dims = Vector2::new(1024.0, 1024.0);
-        let mut imgbuf = image::ImageBuffer::from_pixel(
-            dims.x as u32,
-            dims.y as u32,
-            image::Rgb([222, 222, 222]),
-        );
+        let mut imgbuf =
+            image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Luma([0]));
 
         let mut rng = rand_xorshift::XorShiftRng::from_seed([
             122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
@@ -713,7 +707,7 @@ mod spade_tests {
                 let p = Point2::new(point.x as f32, point.y as f32);
                 let height = dt.nn_interpolation(&p, |v| v.value.elevation()).unwrap();
                 let color = (255.0 * height.min(1.0).max(0.0)) as u8;
-                image::Rgb([color, color, color])
+                image::Luma([color])
             },
         );
 
