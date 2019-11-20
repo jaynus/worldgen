@@ -72,10 +72,7 @@ impl<T: RealField + From<f32>> Settings<T> {
     }
 }
 
-fn fetch_or_err<T: Default, D: EdgeType>(
-    graph: &Graph<RegionNode<T>, RegionEdge, D>,
-    node: NodeIndex,
-) -> Result<&RegionNode<T>, failure::Error> {
+fn fetch_or_err<T: Default, D: EdgeType>(graph: &Graph<RegionNode<T>, RegionEdge, D>, node: NodeIndex) -> Result<&RegionNode<T>, failure::Error> {
     Ok(graph
         .node_weight(node)
         .ok_or_else(|| failure::format_err!("Failed to fetch graph node: {:?}", node))?)
@@ -89,11 +86,7 @@ fn fetch_or_err_mut<T: Default, D: EdgeType>(
         .ok_or_else(|| failure::format_err!("Failed to fetch graph node: {:?}", node))?)
 }
 
-pub fn visit<T, V, R, E>(
-    region_graph: &mut Graph<RegionNode<V>, RegionEdge, E>,
-    settings: &Settings<T>,
-    rng: &mut R,
-) -> Result<(), failure::Error>
+pub fn visit<T, V, R, E>(region_graph: &mut Graph<RegionNode<V>, RegionEdge, E>, settings: &Settings<T>, rng: &mut R) -> Result<(), failure::Error>
 where
     T: RealField,
     V: Default + HasElevation<T>,
@@ -125,9 +118,7 @@ where
     let mut queue = Vec::with_capacity(region_graph.node_count());
 
     let mut current_elevation = starting_node.elevation;
-    fetch_or_err_mut(region_graph, starting_node.node)?
-        .value
-        .set_elevation(current_elevation);
+    fetch_or_err_mut(region_graph, starting_node.node)?.value.set_elevation(current_elevation);
 
     queue.push(starting_node.node);
     let mut i = 0;
@@ -159,10 +150,7 @@ where
     Ok(())
 }
 
-pub fn node_for_coordinate<T, D>(
-    graph: &Graph<RegionNode<T>, RegionEdge, D>,
-    point: Point2<f32>,
-) -> Option<NodeIndex>
+pub fn node_for_coordinate<T, D>(graph: &Graph<RegionNode<T>, RegionEdge, D>, point: Point2<f32>) -> Option<NodeIndex>
 where
     T: Default,
     D: EdgeType,
@@ -172,9 +160,7 @@ where
 
     graph.node_references().fold(None, |acc, region| {
         if let Some(last) = acc {
-            if distance(&graph.node_weight(last).expect("Bad graph").pos, &point)
-                < distance(&region.weight().pos, &point)
-            {
+            if distance(&graph.node_weight(last).expect("Bad graph").pos, &point) < distance(&region.weight().pos, &point) {
                 Some(last)
             } else {
                 Some(region.id())
@@ -194,8 +180,8 @@ mod tests {
     use petgraph::visit::IntoNodeReferences;
     use rand::Rng;
     use rand::SeedableRng;
-    #[derive(Default)]
 
+    #[derive(Default)]
     struct TestInner {
         elevation: f32,
     }
@@ -211,18 +197,11 @@ mod tests {
     #[test]
     pub fn island_visitor() {
         let dims = Vector2::new(1024.0, 1024.0);
-        let mut imgbuf = image::ImageBuffer::from_pixel(
-            dims.x as u32,
-            dims.y as u32,
-            image::Rgb([222, 222, 222]),
-        );
+        let mut imgbuf = image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Rgb([222, 222, 222]));
 
-        let mut rng = rand_xorshift::XorShiftRng::from_seed([
-            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
-        ]);
+        let mut rng = rand_xorshift::XorShiftRng::from_seed([122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4]);
 
-        let (mut region_graph, border_graph) =
-            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
+        let (mut region_graph, border_graph) = gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
 
         // Start at the center
         let center = Point2::from(dims / 2.0);
@@ -232,11 +211,7 @@ mod tests {
                 let x = rng.gen_range(-500.0, 500.0);
                 let y = rng.gen_range(-500.0, 500.0);
                 PeakNode {
-                    node: node_for_coordinate(
-                        &region_graph,
-                        Point2::new(center.x + x, center.y + y),
-                    )
-                    .expect("wut"),
+                    node: node_for_coordinate(&region_graph, Point2::new(center.x + x, center.y + y)).expect("wut"),
                     elevation: height,
                 }
             })
@@ -246,43 +221,31 @@ mod tests {
 
         visit(&mut region_graph, &settings, &mut rng).unwrap();
 
-        draw_graph(
-            &mut imgbuf,
-            &region_graph,
-            &border_graph,
-            |region, border_graph| {
-                //let color = region.value.height as i32;
-                let elevation = region.value.elevation();
-                let color = if elevation > 0.3 {
-                    (255.0 / (1.0 - elevation)) as u8
-                } else {
-                    0
-                };
+        draw_graph(&mut imgbuf, &region_graph, &border_graph, |region, border_graph| {
+            //let color = region.value.height as i32;
+            let elevation = region.value.elevation();
+            let color = if elevation > 0.3 { (255.0 / (1.0 - elevation)) as u8 } else { 0 };
 
-                (
-                    image::Rgb([color, color, color]),
-                    region
-                        .borders
-                        .iter()
-                        .filter_map(|idx| {
-                            let node = border_graph.node_weight(*idx).expect("Bad graphs");
+            (
+                image::Rgb([color, color, color]),
+                region
+                    .borders
+                    .iter()
+                    .filter_map(|idx| {
+                        let node = border_graph.node_weight(*idx).expect("Bad graphs");
 
-                            Some(ImgPoint::<i32>::new(node.pos.x as i32, node.pos.y as i32))
-                        })
-                        .collect(),
-                )
-            },
-        );
+                        Some(ImgPoint::<i32>::new(node.pos.x as i32, node.pos.y as i32))
+                    })
+                    .collect(),
+            )
+        });
 
         imgbuf.save("output/island.png").unwrap();
     }
 
     pub(crate) fn draw_graph<
         RG: IntoNodeReferences,
-        N: Fn(
-            &<RG as petgraph::visit::Data>::NodeWeight,
-            &BorderGraph,
-        ) -> (<I as image::GenericImageView>::Pixel, Vec<ImgPoint<i32>>),
+        N: Fn(&<RG as petgraph::visit::Data>::NodeWeight, &BorderGraph) -> (<I as image::GenericImageView>::Pixel, Vec<ImgPoint<i32>>),
         I,
     >(
         imgbuf: &mut I,
@@ -292,21 +255,18 @@ mod tests {
     ) where
         I: image::GenericImage,
         I::Pixel: 'static,
-        <<I as image::GenericImageView>::Pixel as image::Pixel>::Subpixel:
-            conv::ValueInto<f32> + imageproc::definitions::Clamp<f32>,
+        <<I as image::GenericImageView>::Pixel as image::Pixel>::Subpixel: conv::ValueInto<f32> + imageproc::definitions::Clamp<f32>,
     {
         use petgraph::visit::NodeRef;
         for node in region_graph.node_references() {
             let (color, points) = node_color(node.weight(), border_graph);
             let len = points.len();
-            let dedup = points
-                .into_iter()
-                .fold(Vec::with_capacity(len), |mut acc, point| {
-                    if !acc.contains(&point) {
-                        acc.push(point);
-                    }
-                    acc
-                });
+            let dedup = points.into_iter().fold(Vec::with_capacity(len), |mut acc, point| {
+                if !acc.contains(&point) {
+                    acc.push(point);
+                }
+                acc
+            });
 
             if dedup.len() >= 3 {
                 imageproc::drawing::draw_convex_polygon_mut(imgbuf, dedup.as_slice(), color);
@@ -342,15 +302,11 @@ mod rbf_interp_tests {
     #[test]
     pub fn rbf_interp() {
         let dims = Vector2::new(1024.0, 1024.0);
-        let mut imgbuf =
-            image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Luma([0]));
+        let mut imgbuf = image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Luma([0]));
 
-        let mut rng = rand_xorshift::XorShiftRng::from_seed([
-            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
-        ]);
+        let mut rng = rand_xorshift::XorShiftRng::from_seed([122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4]);
 
-        let (mut region_graph, border_graph) =
-            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
+        let (mut region_graph, border_graph) = gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
 
         // Start at the center
         let center = Point2::from(dims / 2.0);
@@ -360,11 +316,7 @@ mod rbf_interp_tests {
                 let x = rng.gen_range(-500.0, 500.0);
                 let y = rng.gen_range(-500.0, 500.0);
                 PeakNode {
-                    node: node_for_coordinate(
-                        &region_graph,
-                        Point2::new(center.x + x, center.y + y),
-                    )
-                    .expect("wut"),
+                    node: node_for_coordinate(&region_graph, Point2::new(center.x + x, center.y + y)).expect("wut"),
                     elevation: height,
                 }
             })
@@ -397,14 +349,9 @@ mod rbf_interp_tests {
                     let node = graph.node_weight(idx).unwrap();
                     points.push(PtValue::new(node.pos.x, node.pos.y, node.value.elevation()));
                 });
-                points.push(PtValue::new(
-                    region.1.pos.x,
-                    region.1.pos.y,
-                    region.1.value().elevation(),
-                ));
+                points.push(PtValue::new(region.1.pos.x, region.1.pos.y, region.1.value().elevation()));
 
-                let height = Rbf::new(&points, DistanceFunction::Linear, None)
-                    .interp_point((point.x as f32, point.y as f32));
+                let height = Rbf::new(&points, DistanceFunction::Linear, None).interp_point((point.x as f32, point.y as f32));
                 let color = (255.0 * height.min(1.0).max(0.0)) as u8;
 
                 image::Luma([color])
@@ -417,12 +364,7 @@ mod rbf_interp_tests {
     fn draw_graph<
         RG: IntoNodeReferences + NodeCount,
         N: Fn(&<RG as petgraph::visit::Data>::NodeWeight, &BorderGraph) -> Vec<Point2<i32>>,
-        P: (Fn(
-                <RG as IntoNodeReferences>::NodeRef,
-                &RG,
-                &Point2<i32>,
-            ) -> <I as image::GenericImageView>::Pixel)
-            + Clone,
+        P: (Fn(<RG as IntoNodeReferences>::NodeRef, &RG, &Point2<i32>) -> <I as image::GenericImageView>::Pixel) + Clone,
         I,
     >(
         imgbuf: &mut I,
@@ -436,34 +378,22 @@ mod rbf_interp_tests {
         <RG as IntoNodeReferences>::NodeRef: Send,
         I: image::GenericImage,
         I::Pixel: 'static,
-        <<I as image::GenericImageView>::Pixel as image::Pixel>::Subpixel:
-            conv::ValueInto<f32> + imageproc::definitions::Clamp<f32>,
+        <<I as image::GenericImageView>::Pixel as image::Pixel>::Subpixel: conv::ValueInto<f32> + imageproc::definitions::Clamp<f32>,
     {
-        region_graph
-            .node_references()
-            .enumerate()
-            .for_each(|(i, node)| {
-                let points = node_points(node.weight(), border_graph);
-                let len = points.len();
-                let dedup = points
-                    .into_iter()
-                    .fold(Vec::with_capacity(len), |mut acc, point| {
-                        if !acc.contains(&point) {
-                            acc.push(point);
-                        }
-                        acc
-                    });
-
-                if dedup.len() >= 3 {
-                    draw_convex_polygon_mut(
-                        imgbuf,
-                        dedup.as_slice(),
-                        &region_graph,
-                        point_color.clone(),
-                        node,
-                    );
+        region_graph.node_references().for_each(|node| {
+            let points = node_points(node.weight(), border_graph);
+            let len = points.len();
+            let dedup = points.into_iter().fold(Vec::with_capacity(len), |mut acc, point| {
+                if !acc.contains(&point) {
+                    acc.push(point);
                 }
+                acc
             });
+
+            if dedup.len() >= 3 {
+                draw_convex_polygon_mut(imgbuf, dedup.as_slice(), &region_graph, point_color.clone(), node);
+            }
+        });
     }
 
     fn draw_convex_polygon_mut<
@@ -486,11 +416,7 @@ mod rbf_interp_tests {
             return;
         }
         if poly[0] == poly[poly.len() - 1] {
-            panic!(
-                "First point {:?} == last point {:?}",
-                poly[0],
-                poly[poly.len() - 1]
-            );
+            panic!("First point {:?} == last point {:?}", poly[0], poly[poly.len() - 1]);
         }
 
         let mut y_min = std::i32::MAX;
@@ -644,15 +570,11 @@ mod spade_tests {
     #[test]
     fn dt_spade_interp() {
         let dims = Vector2::new(1024.0, 1024.0);
-        let mut imgbuf =
-            image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Luma([0]));
+        let mut imgbuf = image::ImageBuffer::from_pixel(dims.x as u32, dims.y as u32, image::Luma([0]));
 
-        let mut rng = rand_xorshift::XorShiftRng::from_seed([
-            122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
-        ]);
+        let mut rng = rand_xorshift::XorShiftRng::from_seed([122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4]);
 
-        let (mut region_graph, border_graph) =
-            gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
+        let (mut region_graph, border_graph) = gen_dual_graph::<TestInner, (), rand_xorshift::XorShiftRng>(dims, 8000, 2, &mut rng);
 
         // Start at the center
         // Start at the center
@@ -663,11 +585,7 @@ mod spade_tests {
                 let x = rng.gen_range(-500.0, 500.0);
                 let y = rng.gen_range(-500.0, 500.0);
                 PeakNode {
-                    node: node_for_coordinate(
-                        &region_graph,
-                        Point2::new(center.x + x, center.y + y),
-                    )
-                    .expect("wut"),
+                    node: node_for_coordinate(&region_graph, Point2::new(center.x + x, center.y + y)).expect("wut"),
                     elevation: height,
                 }
             })
@@ -679,11 +597,7 @@ mod spade_tests {
 
         // Try building the DT out of the graph
 
-        let mut dt = DelaunayTriangulation::<
-            &RegionNode<TestInner>,
-            spade::kernels::FloatKernel,
-            DelaunayWalkLocate,
-        >::default();
+        let mut dt = DelaunayTriangulation::<&RegionNode<TestInner>, spade::kernels::FloatKernel, DelaunayWalkLocate>::default();
         for node in region_graph.node_references() {
             dt.insert(node.1);
         }
@@ -718,11 +632,7 @@ mod spade_tests {
         RG: IntoNodeReferences,
         N: Fn(&<RG as petgraph::visit::Data>::NodeWeight, &BorderGraph) -> Vec<Point2<i32>>,
         P: (Fn(
-                &DelaunayTriangulation<
-                    &RegionNode<TestInner>,
-                    spade::kernels::FloatKernel,
-                    DelaunayWalkLocate,
-                >,
+                &DelaunayTriangulation<&RegionNode<TestInner>, spade::kernels::FloatKernel, DelaunayWalkLocate>,
                 &Point2<i32>,
             ) -> <I as image::GenericImageView>::Pixel)
             + Clone,
@@ -731,30 +641,23 @@ mod spade_tests {
         imgbuf: &mut I,
         region_graph: RG,
         border_graph: &BorderGraph,
-        dt: &DelaunayTriangulation<
-            &RegionNode<TestInner>,
-            spade::kernels::FloatKernel,
-            DelaunayWalkLocate,
-        >,
+        dt: &DelaunayTriangulation<&RegionNode<TestInner>, spade::kernels::FloatKernel, DelaunayWalkLocate>,
         node_points: N,
         point_color: P,
     ) where
         I: image::GenericImage,
         I::Pixel: 'static,
-        <<I as image::GenericImageView>::Pixel as image::Pixel>::Subpixel:
-            conv::ValueInto<f32> + imageproc::definitions::Clamp<f32>,
+        <<I as image::GenericImageView>::Pixel as image::Pixel>::Subpixel: conv::ValueInto<f32> + imageproc::definitions::Clamp<f32>,
     {
         for node in region_graph.node_references() {
             let points = node_points(node.weight(), border_graph);
             let len = points.len();
-            let dedup = points
-                .into_iter()
-                .fold(Vec::with_capacity(len), |mut acc, point| {
-                    if !acc.contains(&point) {
-                        acc.push(point);
-                    }
-                    acc
-                });
+            let dedup = points.into_iter().fold(Vec::with_capacity(len), |mut acc, point| {
+                if !acc.contains(&point) {
+                    acc.push(point);
+                }
+                acc
+            });
 
             if dedup.len() >= 3 {
                 draw_convex_polygon_mut(imgbuf, dedup.as_slice(), &dt, point_color.clone());
@@ -764,23 +667,11 @@ mod spade_tests {
 
     fn draw_convex_polygon_mut<
         C,
-        P: (Fn(
-                &DelaunayTriangulation<
-                    &RegionNode<TestInner>,
-                    spade::kernels::FloatKernel,
-                    DelaunayWalkLocate,
-                >,
-                &Point2<i32>,
-            ) -> C::Pixel)
-            + Clone,
+        P: (Fn(&DelaunayTriangulation<&RegionNode<TestInner>, spade::kernels::FloatKernel, DelaunayWalkLocate>, &Point2<i32>) -> C::Pixel) + Clone,
     >(
         canvas: &mut C,
         poly: &[Point2<i32>],
-        dt: &DelaunayTriangulation<
-            &RegionNode<TestInner>,
-            spade::kernels::FloatKernel,
-            DelaunayWalkLocate,
-        >,
+        dt: &DelaunayTriangulation<&RegionNode<TestInner>, spade::kernels::FloatKernel, DelaunayWalkLocate>,
         point_color: P,
     ) where
         C: imageproc::drawing::Canvas,
@@ -792,11 +683,7 @@ mod spade_tests {
             return;
         }
         if poly[0] == poly[poly.len() - 1] {
-            panic!(
-                "First point {:?} == last point {:?}",
-                poly[0],
-                poly[poly.len() - 1]
-            );
+            panic!("First point {:?} == last point {:?}", poly[0], poly[poly.len() - 1]);
         }
 
         let mut y_min = std::i32::MAX;
@@ -887,22 +774,10 @@ mod spade_tests {
         canvas: &mut C,
         start: (f32, f32),
         end: (f32, f32),
-        dt: &DelaunayTriangulation<
-            &RegionNode<TestInner>,
-            spade::kernels::FloatKernel,
-            DelaunayWalkLocate,
-        >,
+        dt: &DelaunayTriangulation<&RegionNode<TestInner>, spade::kernels::FloatKernel, DelaunayWalkLocate>,
         point_color: P,
     ) where
-        P: (Fn(
-                &DelaunayTriangulation<
-                    &RegionNode<TestInner>,
-                    spade::kernels::FloatKernel,
-                    DelaunayWalkLocate,
-                >,
-                &Point2<i32>,
-            ) -> C::Pixel)
-            + Clone,
+        P: (Fn(&DelaunayTriangulation<&RegionNode<TestInner>, spade::kernels::FloatKernel, DelaunayWalkLocate>, &Point2<i32>) -> C::Pixel) + Clone,
         C: imageproc::drawing::Canvas,
         C::Pixel: 'static,
     {

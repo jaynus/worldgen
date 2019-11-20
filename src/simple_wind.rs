@@ -2,7 +2,7 @@ use crate::{
     dual_graph::{RegionEdge, RegionNode},
     HasElevation, HasTemperature, HasWind,
 };
-use nalgebra::{Point2, RealField, Vector2};
+use nalgebra::{RealField, Vector2};
 use petgraph::{EdgeType, Graph};
 
 pub struct Settings<T: RealField> {
@@ -45,7 +45,8 @@ pub mod tests {
         dual_graph::{gen_dual_graph, RegionGraph},
         HasValue,
     };
-    use petgraph::visit::{IntoNodeReferences, NodeCount};
+    use nalgebra::Point2;
+    use petgraph::visit::{IntoNodeReferences};
     use rand::SeedableRng;
     use rand_xorshift::XorShiftRng;
 
@@ -133,7 +134,7 @@ pub mod tests {
             122, 154, 21, 182, 159, 131, 187, 243, 134, 230, 110, 10, 31, 174, 6, 4,
         ]);
 
-        let (mut region_graph, border_graph) =
+        let (mut region_graph, _border_graph) =
             gen_dual_graph::<TestInner, (), XorShiftRng>(dims, 8000, 2, &mut rng);
 
         apply_peak_automata(&dims, &mut region_graph, &mut rng);
